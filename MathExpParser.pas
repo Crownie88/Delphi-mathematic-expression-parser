@@ -20,7 +20,6 @@ type
     FMaxDec: integer;
     function RemoveSqrt(S: string; os: integer=1): string;
     function RemoveSqr(s: string; os: integer=1): string;
-    function ReversePowers(s: string; os: integer = 1): string;
     function CreateRPN(Exp: string): string;
     function ProcessRPN(rpn: string): double;
     procedure SetDecimalSeperator(const Value: Char);
@@ -50,20 +49,6 @@ type
 implementation
 
 { TExpressionParser }
-//Reversing the order of powers ( 2^3 becomes 2 3^
-function TExpressionParser.ReversePowers(s: string; os: integer = 1): string;
-var
-  I: integer;
-  tc: Char;
-begin
-  I := pos('^', s, os);
-  if (I+1 > Length(s)) or (I=0) then
-    exit(s);
-  S[I] := S[I+1];
-  S[I+1] := '^';
-  Result := ReversePowers(S, I+1);
-end;
-
 procedure TExpressionParser.SetDecimalSeperator(const Value: Char);
 begin
   FDecimalSeperator := Value;
@@ -178,11 +163,11 @@ begin
   Exp := StringReplace(Exp, '--', '+', [rfReplaceAll]);
   Exp := StringReplace(Exp, ' ', '', [rfReplaceAll]);
   num := '';
-//  Exp := ReversePowers(exp);
   Exp := RemoveSqrt(exp);
+  Exp := RemoveSqr(exp);
 
   for C in Exp do
-  begin  //'5+((1+2)*4)−3'
+  begin
     if (CharInSet(C, ['0'..'9'])or (C='.')) then
       num := num + C
     else if Pos(C, cOperators)>0 then
@@ -196,8 +181,8 @@ begin
       begin
         Depth := Depth-1;
         Result := Result + opList[0].iOperator + ' ';
-        opList.Delete(0);//Operator verwijderen welke naar numstack is verplaatst
-        opList.Delete(0);//Open haakje verwijderen.
+        opList.Delete(0);
+        opList.Delete(0);
       end
       else if currOperator.iOperator = '(' then
       begin
@@ -247,9 +232,6 @@ var
   RevPolNotation: string;
 begin
   RevPolNotation := CreateRPN(Expression);
-//  Writeln('');
-//  Writeln(RevPolNotation);
-//  Writeln('');
   Result := FormatFloat(Format(FloatForm,[GetDecFormat]),ProcessRPN(RevPolNotation))
 end;
 
